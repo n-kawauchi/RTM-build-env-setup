@@ -1,0 +1,42 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+#--------------------------------
+VM_NAME = "ubuntu1404"
+BOX_IMAGE = "ubuntu/trusty64"
+IPADDRESS = "192.168.33.21"
+SSH_PORT = 2144
+#--------------------------------
+DISK_SIZE = "32GB"
+MEMORY = 2048
+#--------------------------------
+
+Vagrant.configure("2") do |config|
+
+  config.vm.define VM_NAME do |node|
+    node.vm.hostname = VM_NAME
+    node.vm.box = BOX_IMAGE
+    node.disksize.size = DISK_SIZE
+    node.vm.network "private_network", ip: IPADDRESS
+    node.vm.network :forwarded_port, id: "ssh", guest: 22, host: SSH_PORT
+    node.vm.provider "virtualbox" do |v|
+      v.name = VM_NAME
+      v.memory = MEMORY
+    end
+
+    # for password authentication with scp
+    node.vm.provision "shell" do |shell|
+      shell.inline = <<-SHELL
+        apt-get install openssh-server
+        sed -ie 's/^PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+        service ssh restart
+      SHELL
+    end
+
+    # install tool_packages for OpenRTM-aist core developer
+    node.vm.provision "shell" do |shell|
+      shell.path = "../scripts/pkg_install_ubuntu.sh" 
+      shell.args = "-l c++ -l python -c --yes" 
+    end
+  end
+end
