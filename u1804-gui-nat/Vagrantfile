@@ -6,7 +6,7 @@ VM_NAME = "u1804-gui-nat"
 BOX_IMAGE = "ubuntu/bionic64"
 DISK_SIZE = "32GB"
 MEMORY = 8192
-CPU_CORES = 2
+CPU_CORES = 32
 
 # port forwarding
 SSH_PORT = 21842
@@ -34,9 +34,8 @@ Vagrant.configure("2") do |config|
       v.name = VM_NAME
       v.gui = true
       v.memory = MEMORY
-    end
-    node.vm.provider "vmware_fusion" do |v|
-      v.vmx["numvcpus"] = CPU_CORES
+      v.cpus = CPU_CORES
+      v.customize ["modifyvm", :id, "--ioapic", "on"]
     end
 
     node.vm.provision "shell" ,inline: <<-SHELL
