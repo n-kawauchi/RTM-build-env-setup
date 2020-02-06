@@ -1,10 +1,10 @@
 # -*- mode: ruby -*-
+# -*- coding: utf-8 -*-
 # vi: set ft=ruby :
 
 #--------------------------------
 VM_NAME = "ubuntu1804"
 BOX_IMAGE = "ubuntu/bionic64"
-IPADDRESS = "192.168.33.24"
 SSH_PORT = 22184
 #--------------------------------
 DISK_SIZE = "32GB"
@@ -17,7 +17,6 @@ Vagrant.configure("2") do |config|
     node.vm.hostname = VM_NAME
     node.vm.box = BOX_IMAGE
     node.disksize.size = DISK_SIZE
-    node.vm.network "private_network", ip: IPADDRESS
     node.vm.network :forwarded_port, id: "ssh", guest: 22, host: SSH_PORT
     node.vm.provider "virtualbox" do |v|
       v.name = VM_NAME
@@ -25,6 +24,18 @@ Vagrant.configure("2") do |config|
     end
 
     node.vm.provision "shell" ,inline: <<-SHELL
+      # add tmpfs
+      echo 'tmpfs /tmp tmpfs rw,nodev,nosuid,size=512M 0 0' >> /etc/fstab
+      # use riken mirror
+      sed -i -e 's%archive.ubuntu.com/ubuntu%ftp.riken.go.jp/Linux/ubuntu/%g' /etc/apt/sources.list
+      apt update
+
+      # libssl installs non-interactively
+      UCF_FORCE_CONFOLD=1 \
+      DEBIAN_FRONTEND=noninteractive \
+      apt -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -qq -y install libssl1.1
+      apt -y upgrade
+
       # time zone
       timedatectl set-timezone Asia/Tokyo
 
@@ -33,8 +44,7 @@ Vagrant.configure("2") do |config|
       systemctl restart sshd
 
       # install tool_packages for OpenRTM-aist core developer
-      apt-get update
-      apt-get install -y wget ant
+      apt install -y wget
       wget https://raw.githubusercontent.com/OpenRTM/OpenRTM-aist/master/scripts/pkg_install_ubuntu.sh -O pkg_install_ubuntu.sh
       sh pkg_install_ubuntu.sh -l c++ -l python -c --yes
 
