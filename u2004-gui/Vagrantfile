@@ -3,14 +3,14 @@
 # vi: set ft=ruby :
 
 #--------------------------------
-VM_NAME = "u2004-gui-nat"
+VM_NAME = "u2004-gui"
 BOX_IMAGE = "ubuntu/focal64"
 DISK_SIZE = "32GB"
 MEMORY = 8192
-CPU_CORES = 4
+CPU_CORES = 2
 
 # port forwarding
-SSH_PORT = 22041
+SSH_PORT = 2204
 #--------------------------------
 # vm settings
 # 1) ssh port forwarding
