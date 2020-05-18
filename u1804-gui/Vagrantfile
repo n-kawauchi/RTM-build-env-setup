@@ -3,11 +3,11 @@
 # vi: set ft=ruby :
 
 #--------------------------------
-VM_NAME = "u1804-gui-nat"
+VM_NAME = "u1804-gui"
 BOX_IMAGE = "ubuntu/bionic64"
 DISK_SIZE = "32GB"
 MEMORY = 8192
-CPU_CORES = 32
+CPU_CORES = 2
 
 # port forwarding
 SSH_PORT = 21842
@@ -38,8 +38,8 @@ Vagrant.configure("2") do |config|
       v.cpus = CPU_CORES
       v.customize ["modifyvm", :id, "--ioapic", "on"]
     end
-    node.vm.synced_folder "./share", "/home/vagrant/share",
-    create: true, owner: "vagrant", group: "vagrant"
+    node.vm.boot_timeout = 600
+    node.vm.synced_folder "./share", "/home/vagrant/share", create: true, owner: "vagrant", group: "vagrant"
 
     node.vm.provision "shell" ,inline: <<-SHELL
       # add tmpfs
@@ -64,11 +64,20 @@ Vagrant.configure("2") do |config|
       systemctl restart sshd
 
       # install tool_packages for OpenRTM-aist core developer
-      apt -y install wget
-      wget --secure-protocol=TLSv1_2 --no-check-certificate https://raw.githubusercontent.com/OpenRTM/OpenRTM-aist/master/scripts/pkg_install_ubuntu.sh -O pkg_install_ubuntu.sh
+      apt -y install wget ant junit
+
+      #----- (1)Permanent setting
+#      wget --secure-protocol=TLSv1_2 --no-check-certificate https://raw.githubusercontent.com/OpenRTM/OpenRTM-aist/master/scripts/pkg_install_ubuntu.sh -O pkg_install_ubuntu.sh
+      #----- (2)Provisional settings until OpenRTM-aist 1.2.2 release
+      wget --secure-protocol=TLSv1_2 --no-check-certificate https://raw.githubusercontent.com/n-kawauchi/OpenRTM-aist/ubuntu_install_script/scripts/pkg_install_ubuntu.sh -O pkg_install_ubuntu.sh
+      sed -i -e 's/reposerver="openrtm.org/reposerver="150.29.99.185/g' pkg_install_ubuntu.sh
+      sed -i -e 's/reposervers="openrtm.org/reposervers="150.29.99.185/g' pkg_install_ubuntu.sh
+      #----- 
+
       sh pkg_install_ubuntu.sh -l c++ -l python -c --yes
 
       # openrtp depends on java8
+      # install openjdk
       add-apt-repository ppa:openjdk-r/ppa -y
       apt update
       apt -y install openjdk-8-jdk
