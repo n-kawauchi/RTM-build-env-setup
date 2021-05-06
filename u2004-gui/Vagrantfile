@@ -67,19 +67,19 @@ Vagrant.configure("2") do |config|
       apt -y install wget ant junit
 
       #----- (1)Permanent setting
-#      wget --secure-protocol=TLSv1_2 --no-check-certificate https://raw.githubusercontent.com/OpenRTM/OpenRTM-aist/master/scripts/pkg_install_ubuntu.sh -O pkg_install_ubuntu.sh
+      wget --secure-protocol=TLSv1_2 --no-check-certificate https://raw.githubusercontent.com/OpenRTM/OpenRTM-aist/master/scripts/pkg_install_ubuntu.sh -O pkg_install_ubuntu.sh
       #----- (2)Provisional settings until OpenRTM-aist 1.2.2 release
-      wget --secure-protocol=TLSv1_2 --no-check-certificate https://raw.githubusercontent.com/n-kawauchi/OpenRTM-aist/ubuntu_install_script/scripts/pkg_install_ubuntu.sh -O pkg_install_ubuntu.sh
-      sed -i -e 's/reposerver="openrtm.org/reposerver="150.29.99.185/g' pkg_install_ubuntu.sh
-      sed -i -e 's/reposervers="openrtm.org/reposervers="150.29.99.185/g' pkg_install_ubuntu.sh
+#      wget --secure-protocol=TLSv1_2 --no-check-certificate https://raw.githubusercontent.com/n-kawauchi/OpenRTM-aist/ubuntu_install_script/scripts/pkg_install_ubuntu.sh -O pkg_install_ubuntu.sh
+#      sed -i -e 's/reposerver="openrtm.org/reposerver="150.29.99.185/g' pkg_install_ubuntu.sh
+#      sed -i -e 's/reposervers="openrtm.org/reposervers="150.29.99.185/g' pkg_install_ubuntu.sh
       #----- 
 
       sh pkg_install_ubuntu.sh -l c++ -l python -c --yes
 
       # openrtp depends on java8
       # install openjdk
-      add-apt-repository ppa:openjdk-r/ppa -y
-      apt update
+#      add-apt-repository ppa:openjdk-r/ppa -y
+#      apt update
       apt -y install openjdk-8-jdk
       JAVA8=`update-alternatives --list java | grep java-8`
       update-alternatives --set java ${JAVA8}
