@@ -85,10 +85,7 @@ Vagrant.configure("2") do |config|
       systemctl restart xrdp
 
       # openrtp depends on java8
-      # install openjdk
-      apt -y install openjdk-8-jdk
-      JAVA8=`update-alternatives --list java | grep java-8`
-      update-alternatives --set java ${JAVA8}
+      # JDK8 is installed with pkg_install_ubuntu.sh.
 
       # install ROS2(foxy)
       apt -y install curl

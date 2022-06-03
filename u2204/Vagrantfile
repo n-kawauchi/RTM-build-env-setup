@@ -3,14 +3,16 @@
 # vi: set ft=ruby :
 
 #--------------------------------
-VM_NAME = "u1604-32-gui"
-BOX_IMAGE = "ubuntu/xenial32"
+VM_NAME = "u2204"
+BOX_IMAGE = "ubuntu/jammy64"
 DISK_SIZE = "32GB"
 MEMORY = 8192
 CPU_CORES = 2
 
 # port forwarding
-SSH_PORT = 21643
+#SSH_PORT = 2224
+# private_network
+IP_ADDRESS = "192.168.33.26"
 #--------------------------------
 # vm settings
 # 1) ssh port forwarding
@@ -20,7 +22,7 @@ SSH_PORT = 21643
 # 5) libssl installs non-interactively
 # 6) scp password authentication
 # 7) install tool_packages for OpenRTM-aist core developer
-# 8) install openjdk-8-jdk
+# 8) install remote desktop
 # 9) Keyboard japanese layout
 #--------------------------------
 
@@ -30,13 +32,20 @@ Vagrant.configure("2") do |config|
     node.vm.hostname = VM_NAME
     node.vm.box = BOX_IMAGE
     node.disksize.size = DISK_SIZE
-    node.vm.network :forwarded_port, id: "ssh", guest: 22, host: SSH_PORT
+    node.vm.network :private_network, ip: IP_ADDRESS, auto_config:false
     node.vm.provider "virtualbox" do |v|
       v.name = VM_NAME
       v.gui = true
       v.memory = MEMORY
-      v.cpus = CPU_CORES
-      v.customize ["modifyvm", :id, "--ioapic", "on"]
+      v.customize ["modifyvm", :id, 
+        "--cpus", "2",
+        "--vram", "256",
+        "--accelerate3d", "on",
+        "--ioapic", "on",
+        "--chipset", "ich9",
+        "--paravirtprovider", "kvm",
+        "--clipboard", "bidirectional"
+      ]
     end
     node.vm.boot_timeout = 600
     node.vm.synced_folder "./share", "/home/vagrant/share", create: true, owner: "vagrant", group: "vagrant"
@@ -66,28 +75,41 @@ Vagrant.configure("2") do |config|
       # install tool_packages for OpenRTM-aist core developer
       apt -y install wget ant junit
 
-      #----- (1)Permanent setting
-#      wget --secure-protocol=TLSv1_2 --no-check-certificate https://raw.githubusercontent.com/OpenRTM/OpenRTM-aist/master/scripts/pkg_install_ubuntu.sh -O pkg_install_ubuntu.sh
-      #----- (2)Provisional settings until OpenRTM-aist 1.2.2 release
-      wget --secure-protocol=TLSv1_2 --no-check-certificate https://raw.githubusercontent.com/n-kawauchi/OpenRTM-aist/ubuntu_install_script/scripts/pkg_install_ubuntu.sh -O pkg_install_ubuntu.sh
-      sed -i -e 's/reposerver="openrtm.org/reposerver="150.29.99.185/g' pkg_install_ubuntu.sh
-      sed -i -e 's/reposervers="openrtm.org/reposervers="150.29.99.185/g' pkg_install_ubuntu.sh
-      #----- 
+      wget --secure-protocol=TLSv1_2 --no-check-certificate https://raw.githubusercontent.com/OpenRTM/OpenRTM-aist/master/scripts/pkg_install_ubuntu.sh -O pkg_install_ubuntu.sh
+#      sh pkg_install_ubuntu.sh -l c++ -l python -c --yes
+      sh pkg_install_ubuntu.sh -l c++ -c --yes
 
-      sh pkg_install_ubuntu.sh -l c++ -l python -c --yes
+      # install remote desktop
+      apt -y install xorgxrdp xrdp
+      # Display correction around cursor
+      sed -i -e 's/^new_cursors=true/new_cursors=false/g' /etc/xrdp/xrdp.ini
+      systemctl restart xrdp
 
       # openrtp depends on java8
-      # install openjdk
-      add-apt-repository ppa:openjdk-r/ppa -y
-      apt update
-      apt -y install openjdk-8-jdk
-      JAVA8=`update-alternatives --list java | grep java-8`
-      update-alternatives --set java ${JAVA8}
+      # JDK8 is installed with pkg_install_ubuntu.sh.
 
       # Keyboard japanese layout
       apt -y install ibus-mozc
       echo 'setxkbmap -layout jp' >> /home/vagrant/.bashrc
+      # config Env
+      update-locale LANG=ja_JP.UTF-8
 
+      # change themes
+      apt -y install gnome-tweaks
     SHELL
+
+    # Avoiding 'Authentication Required' dialog
+    node.vm.provision "shell" ,inline: $avoid_authentication_required
   end
 end
+
+$avoid_authentication_required = <<SCRIPT
+cat <<EOF >> /etc/polkit-1/localauthority/50-local.d/xrdp-color-manager.pkla
+[Netowrkmanager]
+Identity=unix-user:*
+Action=org.freedesktop.color-manager.create-device
+ResultAny=no
+ResultInactive=no
+ResultActive=yes
+EOF
+SCRIPT
