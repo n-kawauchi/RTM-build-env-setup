@@ -1,0 +1,101 @@
+# -*- mode: ruby -*-
+# -*- coding: utf-8 -*-
+# vi: set ft=ruby :
+
+#--------------------------------
+VM_NAME = "u2004-arm"
+BOX_IMAGE = "ubuntu/focal64"
+DISK_SIZE = "64GB"
+MEMORY = 8192
+CPU_CORES = 2
+
+# port forwarding
+SSH_PORT = 22048
+#--------------------------------
+# vm settings
+# 1) ssh port forwarding
+# 2) add tmpfs
+# 3) use riken mirror
+# 4) libssl installs non-interactively
+# 5) scp password authentication
+# 6) install tool_packages for OpenRTM-aist core developer
+# 7) install QEMU
+#--------------------------------
+
+Vagrant.configure("2") do |config|
+
+  config.vm.define VM_NAME do |node|
+    node.vm.hostname = VM_NAME
+    node.vm.box = BOX_IMAGE
+    node.disksize.size = DISK_SIZE
+    node.vm.network :forwarded_port, id: "ssh", guest: 22, host: SSH_PORT
+    node.vm.provider "virtualbox" do |v|
+      v.name = VM_NAME
+      v.gui = true
+      v.memory = MEMORY
+      v.cpus = CPU_CORES
+      v.customize ["modifyvm", :id, "--ioapic", "on"]
+    end
+    node.vm.boot_timeout = 600
+    node.vm.synced_folder "./share", "/home/vagrant/share", create: true, owner: "vagrant", group: "vagrant"
+
+    node.vm.provision "shell" ,inline: <<-SHELL
+      # add tmpfs
+      echo 'tmpfs /tmp tmpfs rw,nodev,nosuid,size=512M 0 0' >> /etc/fstab
+      # use riken mirror
+      sed -i -e 's%archive.ubuntu.com/ubuntu%ftp.riken.go.jp/Linux/ubuntu/%g' /etc/apt/sources.list
+      apt update
+
+      # libssl installs non-interactively
+      UCF_FORCE_CONFOLD=1 \
+      DEBIAN_FRONTEND=noninteractive \
+      apt -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -qq -y install libssl1.1
+      apt -y upgrade
+
+      # time zone
+      timedatectl set-timezone Asia/Tokyo
+
+      # scp password authentication
+      sed -ie 's/^PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+      systemctl restart sshd
+
+      # install tool_packages for OpenRTM-aist core developer
+      apt -y install wget ant junit
+
+      wget --secure-protocol=TLSv1_2 --no-check-certificate https://raw.githubusercontent.com/OpenRTM/OpenRTM-aist/master/scripts/pkg_install_ubuntu.sh -O pkg_install_ubuntu.sh
+      sh pkg_install_ubuntu.sh -l c++ -l python -c --yes
+
+      # QEMU
+      apt -y install qemu-system-aarch64
+
+      # ARM image, Expand image size to 32GB
+      wget https://cloud-images.ubuntu.com/releases/focal/release/ubuntu-20.04-server-cloudimg-arm64.img -O ubuntu-20.04-server-cloudimg-arm64.img
+      qemu-img resize ubuntu-20.04-server-cloudimg-arm64.img 32G
+
+      # EFI image of QEMU, Create EFI volume
+      wget https://releases.linaro.org/components/kernel/uefi-linaro/latest/release/qemu64/QEMU_EFI.fd -O QEMU_EFI.fd
+      dd if=/dev/zero of=flash0.img bs=1M count=64
+      dd if=QEMU_EFI.fd of=flash0.img conv=notrunc
+      dd if=/dev/zero of=flash1.img bs=1M count=64
+    SHELL
+
+    # user-data creation
+    # For initial user setup
+    node.vm.provision "shell" ,inline: $user_data
+    node.vm.provision "shell" ,inline: <<-SHELL
+      # Create a cloud-config disk image
+      apt -y install cloud-image-utils
+      cloud-localds --disk-format qcow2 cloud.img user-data
+    SHELL
+  end
+end
+
+$user_data = <<SCRIPT
+cat <<EOF >> user-data
+#cloud-config
+user: vagrant
+password: vagrant
+chpasswd: { expire: Fail }
+ssh_pwauth: True
+EOF
+SCRIPT
