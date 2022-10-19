@@ -1,0 +1,138 @@
+# -*- mode: ruby -*-
+# -*- coding: utf-8 -*-
+# vi: set ft=ruby :
+
+#--------------------------------
+VM_NAME = "u2004-ros12"
+BOX_IMAGE = "ubuntu/focal64"
+DISK_SIZE = "32GB"
+MEMORY = 10240
+CPU_CORES = 2
+
+# private_network
+IP_ADDRESS = "192.168.33.24"
+#--------------------------------
+# vm settings
+# 1) private network
+# 2) add tmpfs
+# 3) use riken mirror
+# 4) install ubuntu-desktop
+# 5) libssl installs non-interactively
+# 6) scp password authentication
+# 7) install tool_packages for OpenRTM-aist core developer
+# 8) install remote desktop
+# 9) install openjdk-8-jdk
+# 10) install ROS2
+# 11) Keyboard japanese layout
+#--------------------------------
+
+Vagrant.configure("2") do |config|
+
+  config.vm.define VM_NAME do |node|
+    node.vm.hostname = VM_NAME
+    node.vm.box = BOX_IMAGE
+    node.disksize.size = DISK_SIZE
+    node.vm.network :private_network, ip: IP_ADDRESS, auto_config:false
+    node.vm.provider "virtualbox" do |v|
+      v.name = VM_NAME
+      v.gui = true
+      v.memory = MEMORY
+      v.customize ["modifyvm", :id, 
+        "--cpus", "2",
+        "--vram", "256",
+        "--accelerate3d", "on",
+        "--ioapic", "on",
+        "--chipset", "ich9",
+        "--paravirtprovider", "kvm",
+        "--clipboard", "bidirectional"
+      ]
+    end
+    node.vm.boot_timeout = 600
+    node.vm.synced_folder "./share", "/home/vagrant/share", create: true, owner: "vagrant", group: "vagrant"
+
+    node.vm.provision "shell" ,inline: <<-SHELL
+      # add tmpfs
+      echo 'tmpfs /tmp tmpfs rw,nodev,nosuid,size=512M 0 0' >> /etc/fstab
+      # use riken mirror
+      sed -i -e 's%archive.ubuntu.com/ubuntu%ftp.riken.go.jp/Linux/ubuntu/%g' /etc/apt/sources.list
+      apt update
+
+      # libssl installs non-interactively
+      UCF_FORCE_CONFOLD=1 \
+      DEBIAN_FRONTEND=noninteractive \
+      apt -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -qq -y install libssl1.1
+      apt -y upgrade
+
+      # desktop
+      apt -y install ubuntu-desktop
+      # time zone
+      timedatectl set-timezone Asia/Tokyo
+
+      # scp password authentication
+      sed -ie 's/^PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+      systemctl restart sshd
+
+      # install tool_packages for OpenRTM-aist core developer
+      apt -y install wget ant junit
+
+      wget --secure-protocol=TLSv1_2 --no-check-certificate https://raw.githubusercontent.com/OpenRTM/OpenRTM-aist/master/scripts/pkg_install_ubuntu.sh -O pkg_install_ubuntu.sh
+      sh pkg_install_ubuntu.sh -l c++ -l python -c --yes
+
+      # install remote desktop
+      apt -y install xorgxrdp xrdp
+      # Display correction around cursor
+      sed -i -e 's/^new_cursors=true/new_cursors=false/g' /etc/xrdp/xrdp.ini
+      systemctl restart xrdp
+
+      # openrtp depends on java8
+      # install openjdk
+      apt -y install openjdk-8-jdk
+      JAVA8=`update-alternatives --list java | grep java-8`
+      update-alternatives --set java ${JAVA8}
+
+      # install ROS(noetic)
+      apt -y install curl
+      curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
+      sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+
+      apt update
+      apt -y install ros-noetic-desktop-full
+      apt -y install python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool
+      rosdep init
+      rosdep update
+      echo "source /opt/ros/noetic/setup.bash" >> /home/vagrant/.bashrc
+
+      # install ROS2(foxy)
+      apt -y install curl
+      curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o /usr/share/keyrings/ros-archive-keyring.gpg
+      sh -c 'echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/ros2.list'
+
+      apt update
+      apt -y install ros-foxy-desktop
+      echo "source /opt/ros/foxy/setup.bash" >> /home/vagrant/.bashrc
+
+      # Keyboard japanese layout
+      apt -y install ibus-mozc
+      echo 'setxkbmap -layout jp' >> /home/vagrant/.bashrc
+      # config Env
+      update-locale LANG=ja_JP.UTF-8
+
+      # change themes
+      apt -y install gnome-tweak-tool
+    SHELL
+
+    # Avoiding 'Authentication Required' dialog
+    node.vm.provision "shell" ,inline: $avoid_authentication_required
+  end
+end
+
+$avoid_authentication_required = <<SCRIPT
+cat <<EOF >> /etc/polkit-1/localauthority/50-local.d/xrdp-color-manager.pkla
+[Allow Colord all Users]
+Identity=unix-user:*
+Action=org.freedesktop.color-manager.create-device;org.freedesktop.color-manager.create-profile;org.freedesktop.color-manager.delete-device;org.freedesktop.color-manager.delete-profile;org.freedesktop.color-manager.modify-device;org.freedesktop.color-manager.modify-profile
+ResultAny=no
+ResultInactive=no
+ResultActive=yes
+EOF
+SCRIPT
