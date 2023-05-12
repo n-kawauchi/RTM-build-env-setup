@@ -1,0 +1,39 @@
+●port forwarding
+
+VM_NAME = "u1804-gui"       SSH_PORT = 21842
+VM_NAME = "u1804-rtm20"     SSH_PORT = 21843
+VM_NAME = "u1804-gui2"      SSH_PORT = 21844
+VM_NAME = "u1804-fluent"    SSH_PORT = 21845
+VM_NAME = "u1804-rtp12 "    SSH_PORT = 21846
+VM_NAME = "u1804-cv454 "    SSH_PORT = 21847
+VM_NAME = "u1804-122test"   SSH_PORT = 21848
+VM_NAME = "u1804-cmake"     SSH_PORT = 21849
+
+VM_NAME = "u2004-gui"       SSH_PORT = 2204
+VM_NAME = "u2004-docker"    SSH_PORT = 22041
+VM_NAME = "u2004-rtm20"     SSH_PORT = 22042
+VM_NAME = "u2004-devel"     SSH_PORT = 22043
+VM_NAME = "u2004-rtm122"    SSH_PORT = 22044
+VM_NAME = "u2004-gui2"      SSH_PORT = 22045
+VM_NAME = "u2004-122test"   SSH_PORT = 22046
+VM_NAME = "u2004-arm"       SSH_PORT = 22048      tcp::2222-:22   D:/RTM-build-env-setup/u2004-qemu-arm
+VM_NAME = "u2004-devel2"    SSH_PORT = 22049
+VM_NAME = "u2004-camp"      SSH_PORT = 22050
+
+VM_NAME = "u2204-rasp3"     SSH_PORT = 2224
+VM_NAME = "u2204-arm"       SSH_PORT = 22241      tcp::2226-:22
+VM_NAME = "u2204-bullseye"  SSH_PORT = 22242      tcp::2224-:22   D:/RTM-build-env-setup/u2204-rasp3-bullseye
+VM_NAME = "u2204-bullseye32"  SSH_PORT = 22243    tcp::2225-:22   D:/RTM-build-env-setup/u2204-rasp3-bullseye32
+VM_NAME = "u2204-buster32"    SSH_PORT = 22244    tcp::2223-:22   D:/RTM-build-env-setup/u2204-rasp3-buster32
+VM_NAME = "u2204-buster32-2"  SSH_PORT = 22245    tcp::2227-:22   D:/RTM-build-env-setup/u2204-buster32-2
+
+●private network
+
+VM_NAME = "u2004-ros"       IP_ADDRESS = "192.168.33.21"
+VM_NAME = "u2004-ros2"      IP_ADDRESS = "192.168.33.22"
+VM_NAME = "u2004-rtm20"     IP_ADDRESS = "192.168.33.23"
+VM_NAME = "u2004-ros12"     IP_ADDRESS = "192.168.33.24"
+VM_NAME = "u2004-camtest"   IP_ADDRESS = "192.168.33.25"
+VM_NAME = "u2224"           IP_ADDRESS = "192.168.33.26"
+VM_NAME = "u2004-camp"      IP_ADDRESS = "192.168.33.27"
+VM_NAME = "u2224-2"         IP_ADDRESS = "192.168.33.28"

@@ -3,25 +3,23 @@
 # vi: set ft=ruby :
 
 #--------------------------------
-VM_NAME = "u2204-buster32"
+VM_NAME = "u2204-arm"
 BOX_IMAGE = "ubuntu/jammy64"
-DISK_SIZE = "32GB"
+DISK_SIZE = "64GB"
 MEMORY = 8192
 CPU_CORES = 2
 
 # port forwarding
-SSH_PORT = 22244
+SSH_PORT = 22241
 #--------------------------------
 # vm settings
 # 1) ssh port forwarding
 # 2) add tmpfs
 # 3) use riken mirror
-# 4) install ubuntu-desktop
-# 5) libssl installs non-interactively
-# 6) scp password authentication
-# 7) install tool_packages for OpenRTM-aist core developer
-# 8) install remote desktop
-# 9) Keyboard japanese layout
+# 4) libssl installs non-interactively
+# 5) scp password authentication
+# 6) install tool_packages for OpenRTM-aist core developer
+# 7) install QEMU
 #--------------------------------
 
 Vagrant.configure("2") do |config|
@@ -35,15 +33,8 @@ Vagrant.configure("2") do |config|
       v.name = VM_NAME
       v.gui = true
       v.memory = MEMORY
-      v.customize ["modifyvm", :id, 
-        "--cpus", "2",
-        "--vram", "256",
-        "--accelerate3d", "on",
-        "--ioapic", "on",
-        "--chipset", "ich9",
-        "--paravirtprovider", "kvm",
-        "--clipboard", "bidirectional"
-      ]
+      v.cpus = CPU_CORES
+      v.customize ["modifyvm", :id, "--ioapic", "on"]
     end
     node.vm.boot_timeout = 600
     node.vm.synced_folder "./share", "/home/vagrant/share", create: true, owner: "vagrant", group: "vagrant"
@@ -72,32 +63,43 @@ Vagrant.configure("2") do |config|
       apt -y install wget ant junit
 
       wget --secure-protocol=TLSv1_2 --no-check-certificate https://raw.githubusercontent.com/OpenRTM/OpenRTM-aist/master/scripts/openrtm2_install_ubuntu.sh -O openrtm2_install_ubuntu.sh
-      sh openrtm2_install_ubuntu.sh -l c++ -c --yes
+      sh openrtm2_install_ubuntu.sh -l c++ -l python -c --yes
 
-      # QEMU
-      apt -y install qemu-utils qemu-system-aarch64 libguestfs-tools xz-utils
+      # Install QEMU and the EFI image for QEMU
+      apt -y install qemu-system-arm qemu-efi
 
-      # RaspiOS image
-      curl -O https://downloads.raspberrypi.org/raspios_oldstable_lite_armhf/images/raspios_oldstable_lite_armhf-2023-02-22/2023-02-21-raspios-buster-armhf-lite.img.xz
-      unxz 2023-02-21-raspios-buster-armhf-lite.img.xz
+      # Create a VM-specific flash volume for storing NVRAM variables
+      #cp /usr/share/AAVMF/AAVMF_CODE.fd flash1.img
+      cp /usr/share/AAVMF/AAVMF_CODE.fd .
+      cp AAVMF_CODE.fd flash1.img
 
-      # Convert it from the raw image to a qcow2 image and add some space
-      qemu-img convert -f raw -O qcow2 2023-02-21-raspios-buster-armhf-lite.img rasbian.qcow2
-      qemu-img resize rasbian.qcow2 16G
-
-      # make sure we get a user account setup
-      echo "vagrant:$(echo 'vagrant'|openssl passwd -6 -stdin)" > userconf
-      apt -y install libguestfs-tools
-      guestmount -a rasbian.qcow2 -m /dev/sda1 /mnt
-      mv userconf /mnt
-      guestunmount /mnt
-
-      # change file owner
-      cp share/bcm2710-rpi-3-b.dtb .
-      cp share/kernel8.img .
-      cp share/start.sh .
-      chown vagrant:vagrant rasbian.qcow2 bcm2710-rpi-3-b.dtb kernel8.img start.sh
-
+      # ARM image, Expand image size to 32GB
+      wget https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-arm64.img -O ubuntu-22.04-server-cloudimg-arm64.img
+      qemu-img resize ubuntu-22.04-server-cloudimg-arm64.img 32G
     SHELL
+
+    # user-data creation
+    # For initial user setup
+    node.vm.provision "shell" ,inline: $user_data
+    node.vm.provision "shell" ,inline: <<-SHELL
+      # Create a cloud-config disk image
+      apt -y install cloud-image-utils
+      cloud-localds --disk-format qcow2 cloud.img user-data
+
+      # copy script, change file owner
+      cp share/start-arm.sh .
+      chown vagrant:vagrant start-arm.sh
+    SHELL
+
   end
 end
+
+$user_data = <<SCRIPT
+cat <<EOF >> user-data
+#cloud-config
+user: vagrant
+password: vagrant
+chpasswd: { expire: Fail }
+ssh_pwauth: True
+EOF
+SCRIPT
