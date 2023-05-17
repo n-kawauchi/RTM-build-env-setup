@@ -78,8 +78,8 @@ Vagrant.configure("2") do |config|
       apt -y install qemu-utils qemu-system-aarch64 libguestfs-tools xz-utils
 
       # RaspiOS image
-      curl -O https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2023-05-03/2023-05-03-raspios-bullseye-armhf-lite.img.xz
-      unxz 2023-05-03-raspios-bullseye-armhf-lite.img.xz
+      curl -O https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2022-04-07/2022-04-04-raspios-bullseye-armhf-lite.img.xz
+      unxz 2022-04-04-raspios-bullseye-armhf-lite.img.xz
 
       # Convert it from the raw image to a qcow2 image and add some space
       qemu-img convert -f raw -O qcow2 2022-04-04-raspios-bullseye-armhf-lite.img rasbian.qcow2
