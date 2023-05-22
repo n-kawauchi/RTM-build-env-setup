@@ -20,12 +20,13 @@ VM_NAME = "u2004-arm"       SSH_PORT = 22048      tcp::2222-:22   D:/RTM-build-e
 VM_NAME = "u2004-devel2"    SSH_PORT = 22049
 VM_NAME = "u2004-camp"      SSH_PORT = 22050
 
-VM_NAME = "u2204-rasp3"     SSH_PORT = 2224
+VM_NAME = "u2204"           SSH_PORT = 2224
 VM_NAME = "u2204-arm"       SSH_PORT = 22241      tcp::2226-:22
 VM_NAME = "u2204-bullseye"  SSH_PORT = 22242      tcp::2224-:22   D:/RTM-build-env-setup/u2204-rasp3-bullseye
 VM_NAME = "u2204-bullseye32"  SSH_PORT = 22243    tcp::2225-:22   D:/RTM-build-env-setup/u2204-rasp3-bullseye32
 VM_NAME = "u2204-buster32"    SSH_PORT = 22244    tcp::2223-:22   D:/RTM-build-env-setup/u2204-rasp3-buster32
 VM_NAME = "u2204-buster32-2"  SSH_PORT = 22245    tcp::2227-:22   D:/RTM-build-env-setup/u2204-buster32-2
+VM_NAME = "u2204-cv470 "    SSH_PORT = 22246
 
 ●private network
 
