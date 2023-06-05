@@ -27,6 +27,8 @@ VM_NAME = "u2204-bullseye32"  SSH_PORT = 22243    tcp::2225-:22   D:/RTM-build-e
 VM_NAME = "u2204-buster32"    SSH_PORT = 22244    tcp::2223-:22   D:/RTM-build-env-setup/u2204-rasp3-buster32
 VM_NAME = "u2204-buster32-2"  SSH_PORT = 22245    tcp::2227-:22   D:/RTM-build-env-setup/u2204-buster32-2
 VM_NAME = "u2204-cv470 "    SSH_PORT = 22246
+VM_NAME = "u2204-py312 "    SSH_PORT = 22247
+VM_NAME = "u2204-cui"       SSH_PORT = 22248
 
 ●private network
 
