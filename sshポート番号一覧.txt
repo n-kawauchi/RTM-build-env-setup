@@ -19,6 +19,7 @@ VM_NAME = "u2004-122test"   SSH_PORT = 22046
 VM_NAME = "u2004-arm"       SSH_PORT = 22048      tcp::2222-:22   D:/RTM-build-env-setup/u2004-qemu-arm
 VM_NAME = "u2004-devel2"    SSH_PORT = 22049
 VM_NAME = "u2004-camp"      SSH_PORT = 22050
+VM_NAME = "u2004-cv481"     SSH_PORT = 22051
 
 VM_NAME = "u2204"           SSH_PORT = 2224
 VM_NAME = "u2204-arm"       SSH_PORT = 22241      tcp::2226-:22
