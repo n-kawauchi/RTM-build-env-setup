@@ -20,6 +20,7 @@ VM_NAME = "u2004-arm"       SSH_PORT = 22048      tcp::2222-:22   D:/RTM-build-e
 VM_NAME = "u2004-devel2"    SSH_PORT = 22049
 VM_NAME = "u2004-camp"      SSH_PORT = 22050
 VM_NAME = "u2004-cv481"     SSH_PORT = 22051
+VM_NAME = "u2004-cui"       SSH_PORT = 22052
 
 VM_NAME = "u2204"           SSH_PORT = 2224
 VM_NAME = "u2204-arm"       SSH_PORT = 22241      tcp::2226-:22
@@ -31,6 +32,7 @@ VM_NAME = "u2204-cv470 "    SSH_PORT = 22246
 VM_NAME = "u2204-py312 "    SSH_PORT = 22247
 VM_NAME = "u2204-cui"       SSH_PORT = 22248
 VM_NAME = "u2204-docker"    SSH_PORT = 22249
+VM_NAME = "u2204-venv"      SSH_PORT = 2241
 
 ●private network
 
