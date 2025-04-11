@@ -24,6 +24,7 @@ Vagrant.configure("2") do |config|
     node.vm.provider "virtualbox" do |v|
       v.name = VM_NAME
       v.memory = MEMORY
+      v.gui = true
 
       # Serial port activation off
       v.customize [ "modifyvm", :id, "--uartmode1", "disconnected" ]
