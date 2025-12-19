@@ -87,10 +87,10 @@ Vagrant.configure("2") do |config|
       LINUX_SDK="eclipse-SDK-4.16-linux-gtk-x86_64.tar.gz"
       WINDOWS_SDK="eclipse-SDK-4.16-win32-x86_64.zip"
 
-      RCP_URL="https://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/2020-06/R/"
+      RCP_URL="https://archive.eclipse.org/technology/epp/downloads/release/2020-06/R/"
       RCP_FILE="eclipse-rcp-2020-06-R-linux-gtk-x86_64.tar.gz"
 
-      BABEL_URL="http://www.eclipse.org/downloads/download.php?file=/technology/babel/babel_language_packs/R0.18.1/2020-06/"
+      BABEL_URL="https://archive.eclipse.org/technology/babel/babel_language_packs/R0.18.1/2020-06/"
       LANG_PACKAGE="BabelLanguagePack-eclipse-ja_4.16.0.v20201010073410.zip"
 
       mkdir -p ${DEST_DIR}
