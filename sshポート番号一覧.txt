@@ -18,6 +18,9 @@ VM_NAME = "u2404-cui"       SSH_PORT = 22441
 VM_NAME = "u2404-cui2"      SSH_PORT = 22442
 VM_NAME = "u2404-docker"    SSH_PORT = 22443
 
+VM_NAME = "u2604"           SSH_PORT = 22641
+
+
 ●private network
 
 VM_NAME = "u2224"           IP_ADDRESS = "192.168.33.26"
